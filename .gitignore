@@ -1,0 +1,4 @@
+*.pyc
+calendar_storage
+__pycache__
+.env
