@@ -1,3 +1,4 @@
+from calendar import calendar
 import os,os.path,json,asyncio
 from discord.ext import commands,tasks
 from datetime import date
@@ -11,11 +12,11 @@ load_dotenv(dotenv_path)
 
 #githubとgoogle calendar
 pusher=GitHub(url=os.environ["GITHUB_URL"])
-nc_calendar_list={"MAKOTO":os.environ['MAKOTO'],"MINIMAKOTO":os.environ['MINIMAKOTO'],
+nc_calendarid_list={"MAKOTO":os.environ['MAKOTO'],"MINIMAKOTO":os.environ['MINIMAKOTO'],
                 "TAKUMI":os.environ['TAKUMI'],"OOKURO":os.environ['OOKURO'],
                 "KUROIYATSU":os.environ['KUROIYATSU'],"TETSUNOOMO":os.environ['TETSUNOOMO'],}
-gc_calendar=GoogleCalendar(os.environ['SERVICE_ACCOUNT'],nc_calendar_list)
-
+calendar_token_list={"MAKOTO":None,"MINIMAKOTO":None,"TAKUMI":None,"OOKURO":None,"KUROIYATSU":None,"TETSUNOOMO":None}
+gc_calendar=GoogleCalendar(os.environ['SERVICE_ACCOUNT'],nc_calendarid_list)
 nc_list=['マコト','ミニマコト','匠','大きい黒いやつ','黒いやつ','鉄のおもちゃ']
 recognition_list={
     'makoto':['m','M','makoto','マコト'],
@@ -63,7 +64,10 @@ class NC(commands.Cog):
         self.announce_channel_id=int(os.environ['ANNOUNCE_CHANNEL_ID'])
         self.calendar=self.rwcalendar(option='r')
         self.config=self.rwconfig(option='r')
+        for nc_name in calendar_token_list:
+            calendar_token_list[nc_name]=gc_calendar.sync(nc_calendarid_list[nc_name],None,None)
         self.AutoDelete.start() # Autodeleteの計算を開始する
+        self.retrieve_new.start()
     
     @tasks.loop() #リピートするコマンド
     async def AutoDelete(self):
@@ -77,7 +81,23 @@ class NC(commands.Cog):
                         del value[d]
         self.rwcalendar()
         self.announce()
-                    
+    
+    @tasks.loop()
+    async def retrieve_new(self):
+        await asyncio.sleep(10)
+        new_events={"MAKOTO":[],"MINIMAKOTO":[],"TAKUMI":[],"OOKURO":[],"KUROIYATSU":[],"TETSUNOOMO":[]}
+        for nc_name in calendar_token_list:
+            result=None
+            if type(calendar_token_list[nc_name]) is list:
+                result=gc_calendar.sync(nc_calendarid_list[nc_name],calendar_token_list[nc_name][0],calendar_token_list[nc_name][1])
+            else: result=gc_calendar.sync(nc_calendarid_list[nc_name],calendar_token_list[nc_name])
+            if "page" in result:
+                calendar_token_list[nc_name]=[calendar_token_list[nc_name][0],result["page"]]
+            else: calendar_token_list[nc_name]=result["sync"]
+            for each in result["eventIds"]:
+                new_events[nc_name].append(each["id"])
+        print(new_events)
+        
     @commands.command(aliases=['Nc','NC'])
     async def nc(self,ctx:commands.Context,name,date,start_time,end_or_duration,*args):
         #ex) nc 06-18 17:00 7h30 いじめはよくない
