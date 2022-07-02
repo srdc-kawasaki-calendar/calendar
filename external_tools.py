@@ -1,11 +1,7 @@
-from tkinter import N
-import  git,json,models
+import  git,models
 from datetime import datetime,timezone,timedelta
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
-# from google_auth_oauthlib.flow import InstalledAppFlow
-# from google.oauth2.credentials import Credentials
-# from google.auth.transport.requests import Request
 
 TZ=timezone(timedelta(hours=+9),'JST')
 NC_CONVERTER={"makoto":"マコト","minimakoto":"ミニマコト","takumi":"匠",
@@ -32,13 +28,18 @@ class GoogleCalendar():
         SERVICE_ACCOUNT, scopes=SCOPES)
         self.service = build('calendar', 'v3', credentials=creds)
         self.nc_list=nc_calendar_list
-    
-    def sync(self):
-        request_list=[]
-        for _,email in self.nc_list.items(): request_list.append(self.service.events().list(email))
-        syncToken=None
-        
-            
+
+    def sync(self,calendarId,syncToken=None,pageToken=None):
+        if not syncToken:
+            return self.service.events().list(calendarId=calendarId,singleEvents=True,maxResults=50).execute()["nextSyncToken"]
+        result=None
+        if pageToken:
+            result=self.service.events().list(calendarId=calendarId,singleEvents=True,maxResults=10,syncToken=syncToken,pageToken=pageToken).execute()
+        else: result=self.service.events().list(calendarId=calendarId,singleEvents=True,maxResults=10,syncToken=syncToken).execute()
+        if "error" in result: self.sync(calendarId)
+        eventIds=result["items"]
+        if "nextPageToken" in result: return {"page":result["nextPageToken"],"eventIds":eventIds}
+        return {"sync":result["nextSyncToken"],"eventIds":eventIds}
     def gcupload(self,nc_name,data:dict):
         calData = models.CalendarData()
         calData.s_year,calData.s_month,calData.s_day=(int(each) for each in data["s_date"].split('-'))
