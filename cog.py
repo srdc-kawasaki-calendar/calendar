@@ -19,12 +19,12 @@ calendar_token_list={"MAKOTO":None,"MINIMAKOTO":None,"TAKUMI":None,"OOKURO":None
 gc_calendar=GoogleCalendar(os.environ['SERVICE_ACCOUNT'],nc_calendarid_list)
 nc_list=['マコト','ミニマコト','匠','大きい黒いやつ','黒いやつ','鉄のおもちゃ']
 recognition_list={
-    'makoto':['m','M','makoto','マコト'],
-    'minimakoto':['mm','MM','minimakoto','ミニマコト'],
-    'takumi':['t','T','takumi','匠'],
-    'ookuro':['ok','OK','ookuro','ookiikuroiyatsu','大きい黒いやつ','大黒'],
-    'kuroiyatsu':['k','K','kuro','kuroiyatsu','黒いやつ'],
-    'tetsunoomo':['to','TO','tetsunoomo','鉄のおもちゃ','鉄おも']
+    'makoto':['m','M','makoto'],
+    'minimakoto':['mm','MM','minimakoto'],
+    'takumi':['t','T','takumi'],
+    'ookuro':['ok','OK','ookuro','ookiikuroiyatsu'],
+    'kuroiyatsu':['k','K','kuro','kuroiyatsu'],
+    'tetsunoomo':['to','TO','tetsunoomo']
 }
 
 class NC(commands.Cog):
