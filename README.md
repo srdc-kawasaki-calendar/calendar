@@ -13,6 +13,7 @@ k! <コマンド> <パラメータ>
 ```
 k! nc <NCの名前> <開始日付> <開始時間> <経過時間もしくは終了時間> <コメント>
 ```
+<span style="color:orange">※注意</span>  `nc` を `Nc` か `NC` と書いてもよい  
 `NCの名前`<span style="color:red">（必須項目）</span>
 - NCのリスト表
     ```
